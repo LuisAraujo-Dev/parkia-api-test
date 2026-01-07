@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, Matches, IsUUID } from 'class-validator';
 import { VagaTipo } from '../../vagas/entities/vaga.entity';
 
 export class EntradaVeiculoDto {
@@ -8,12 +8,11 @@ export class EntradaVeiculoDto {
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Z]{3}-?[0-9][A-Z0-9][0-9]{2}$/, {
-    message: 'Placa deve estar no formato ABC-1234 ou ABC1D23',
+  @Matches(/^[A-Z]{3}-?[0-9][A-Z0-9][0-9]{2}$/i, {
+    message: 'Placa deve estar no formato ABC-1234 ou ABC1D23 (Mercosul)',
   })
   placa: string;
 
-  @IsEnum(VagaTipo)
   @IsNotEmpty()
   tipo_veiculo: VagaTipo;
 }
