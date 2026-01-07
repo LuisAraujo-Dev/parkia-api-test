@@ -1,152 +1,148 @@
-🅿️ PARKIA – Plataforma de Estacionamentos Inteligentes
+# 🅿️ PARKIA – Plataforma de Estacionamentos Inteligentes
 
-O PARKIA é uma plataforma completa de gestão de estacionamentos inteligentes, desenvolvida como desafio técnico, com foco em arquitetura limpa, regras de negócio bem definidas e experiência do desenvolvedor.
+O **PARKIA** é uma plataforma completa de **gestão de estacionamentos inteligentes**, desenvolvida como um **desafio técnico**, com foco em **boas práticas de engenharia, regras de negócio bem definidas e arquitetura escalável**.
 
 O sistema permite:
+- Controle de ocupação de vagas em **tempo real**
+- Registro de **entradas e saídas** de veículos
+- **Cálculo automático de tarifas**
+- Dashboard com **métricas operacionais e financeiras**
 
-Controle de ocupação de vagas em tempo real
+---
 
-Registro de entradas e saídas de veículos
+## 🚀 Tecnologias Utilizadas
 
-Cálculo automático de tarifas
+### Backend
+- **NestJS v11** — Framework Node.js modular e escalável
+- **TypeORM + PostgreSQL** — Persistência de dados relacional
+- **TypeScript** — Tipagem estática para maior segurança e manutenibilidade
 
-Dashboard com métricas operacionais e financeiras
+### Frontend
+- **React 18** — Interface baseada em componentes reativos
+- **Tailwind CSS v4** — Engine moderna de estilização de alta performance
+- **Lucide React** — Biblioteca de ícones leve e consistente
 
-🚀 Tecnologias Utilizadas
-Backend
+### Infraestrutura
+- **Docker**
+- **Docker Compose**
 
-NestJS v11 — Framework Node.js modular, escalável e orientado a boas práticas
+---
 
-TypeORM + PostgreSQL — Persistência de dados relacional robusta
+## 🛠️ Como Executar o Projeto
 
-TypeScript — Tipagem estática para maior segurança e manutenibilidade
-
-Frontend
-
-React 18 — Interface reativa baseada em componentes
-
-Tailwind CSS v4 — Engine moderna de estilização, com alto desempenho
-
-Lucide React — Biblioteca de ícones leve e consistente
-
-Infraestrutura
-
-Docker & Docker Compose — Orquestração completa do ambiente de desenvolvimento
-
-🛠️ Como Executar o Projeto
-1. Pré-requisitos
-
-Docker e Docker Compose (método recomendado)
+### 1. Pré-requisitos
+- **Docker** e **Docker Compose** (recomendado)
 
 ou
 
-Node.js v20+
+- **Node.js v20+**
+- **PostgreSQL** (porta `5444`)
 
-PostgreSQL (porta 5444)
+---
 
-2. Executando com Docker (Recomendado)
+### 2. Executando com Docker (Recomendado)
 
 Na raiz do repositório, execute:
 
-docker compose up -d
+    docker compose up -d
 
+Este comando irá iniciar:
+- Banco de dados PostgreSQL
+- API Backend (NestJS)
+- Frontend Web (React)
 
-Esse comando irá subir:
+---
 
-Banco de dados PostgreSQL
+### 3. Execução Manual (Modo Desenvolvimento)
 
-API Backend (NestJS)
+#### Passo 1: Instalar dependências
 
-Frontend Web (React)
+    cd parkia-api
+    npm install
 
-3. Execução Manual (Modo Desenvolvimento)
-Passo 1: Instalar dependências
-# Backend
-cd parkia-api
-npm install
+    cd ../parkia-web
+    npm install
 
-# Frontend
-cd ../parkia-web
-npm install
+#### Passo 2: Executar a API
 
-Passo 2: Executar a API
-cd parkia-api
-npm run start:dev
+    cd parkia-api
+    npm run start:dev
 
-Passo 3: Executar o Frontend
-cd parkia-web
-npm run dev
+#### Passo 3: Executar o Frontend
 
-🌐 Acesso ao Sistema
+    cd parkia-web
+    npm run dev
 
-Interface Web: http://localhost:5173
+---
 
-API Base URL: http://localhost:3000
+## 🌐 Acesso ao Sistema
 
-📑 Exemplos de Uso da API
-🚗 Vagas
+- **Interface Web:** http://localhost:5173  
+- **API Base URL:** http://localhost:3000  
 
-Listar vagas (com filtros):
+---
 
-GET /vagas?status=livre&tipo=carro
+## 📑 Exemplos de Uso da API
 
+### 🚗 Vagas
 
-Criar nova vaga:
+#### Listar vagas (com filtros)
 
-curl -X POST http://localhost:3000/vagas \
--H "Content-Type: application/json" \
--d '{"numero": "A-10", "tipo": "carro"}'
+    GET /vagas?status=livre&tipo=carro
 
+#### Criar nova vaga
 
-Estatísticas do dashboard:
+    curl -X POST http://localhost:3000/vagas \
+    -H "Content-Type: application/json" \
+    -d '{"numero": "A-10", "tipo": "carro"}'
 
-GET /vagas/estatisticas
+#### Estatísticas do dashboard
 
-🔁 Movimentações
+    GET /vagas/estatisticas
 
-Registrar entrada de veículo:
+---
 
-curl -X POST http://localhost:3000/movimentacoes/entrada \
--H "Content-Type: application/json" \
--d '{"vaga_id": "UUID_DA_VAGA", "placa": "ABC-1234", "tipo_veiculo": "carro"}'
+### 🔁 Movimentações
 
+#### Registrar entrada de veículo
 
-Registrar saída (com cálculo automático):
+    curl -X POST http://localhost:3000/movimentacoes/entrada \
+    -H "Content-Type: application/json" \
+    -d '{"vaga_id": "UUID_DA_VAGA", "placa": "ABC-1234", "tipo_veiculo": "carro"}'
 
-curl -X POST http://localhost:3000/movimentacoes/saida \
--H "Content-Type: application/json" \
--d '{"placa": "ABC-1234"}'
+#### Registrar saída (cálculo automático)
 
-⚖️ Regras de Negócio Implementadas
+    curl -X POST http://localhost:3000/movimentacoes/saida \
+    -H "Content-Type: application/json" \
+    -d '{"placa": "ABC-1234"}'
 
-Tolerância: Permanências de até 15 minutos não geram cobrança
+---
 
-Cálculo de tarifa:
+## ⚖️ Regras de Negócio Implementadas
 
-Valor fixo para a primeira hora
+- **Tolerância:** Permanências de até **15 minutos** não geram cobrança
+- **Cálculo de tarifa:**
+  - Valor fixo para a primeira hora
+  - Horas adicionais arredondadas para cima
+- **Segurança de vagas:**
+  - Bloqueio de entrada em vagas ocupadas ou em manutenção
+- **Gestão de vagas:**
+  - Vagas só podem ser excluídas quando estiverem livres
+- **Compatibilidade de veículos:**
+  - Motos podem ocupar vagas de carros
+  - Carros **não** podem ocupar vagas de motos
 
-Horas adicionais arredondadas para cima
+---
 
-Segurança de vagas:
+## 📂 Estrutura do Monorepo
 
-Bloqueio de entrada em vagas ocupadas ou em manutenção
+    parkia-api/        # Backend em NestJS
+    parkia-web/        # Frontend em React + Tailwind CSS v4
+    docker-compose.yml # Orquestração do ambiente completo
 
-Gestão de vagas:
+---
 
-Vagas só podem ser excluídas quando estiverem livres
+## 👨‍💻 Autor
 
-Compatibilidade de veículos:
-
-Motos podem ocupar vagas de carros
-
-Carros não podem ocupar vagas de motos
-
-📂 Estrutura do Monorepo
-parkia-api/        # Backend em NestJS
-parkia-web/        # Frontend em React + Tailwind CSS v4
-docker-compose.yml # Orquestração do ambiente completo
-
-👨‍💻 Autor
-
-Desenvolvido por Luís Araújo
+Desenvolvido por **Luís Araújo**  
 📅 Janeiro de 2026
