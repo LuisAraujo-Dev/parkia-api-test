@@ -8,5 +8,6 @@ import { VagaEntity } from './entities/vaga.entity';
   imports: [TypeOrmModule.forFeature([VagaEntity])],
   controllers: [VagasController],
   providers: [VagasService],
+  exports: [VagasService],
 })
 export class VagasModule {}
