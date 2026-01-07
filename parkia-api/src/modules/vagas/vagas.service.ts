@@ -8,6 +8,10 @@ import { Repository } from 'typeorm';
 import { VagaEntity, VagaStatus, VagaTipo } from './entities/vaga.entity';
 import { CreateVagaDto } from './dto/create-vaga.dto';
 
+interface ReceitaRaw {
+  total: string | null;
+}
+
 @Injectable()
 export class VagasService {
   constructor(
@@ -16,15 +20,24 @@ export class VagasService {
   ) {}
 
   async create(dto: CreateVagaDto): Promise<VagaEntity> {
+    const numeroNormalizado = dto.numero.toUpperCase();
+
     const vagaExistente = await this.repository.findOne({
-      where: { numero: dto.numero },
+      where: { numero: numeroNormalizado },
     });
 
     if (vagaExistente) {
-      throw new BadRequestException('Já existe uma vaga com este número.');
+      throw new BadRequestException(
+        `A vaga número ${numeroNormalizado} já existe.`,
+      );
     }
 
-    const novaVaga = this.repository.create(dto);
+    const novaVaga = this.repository.create({
+      ...dto,
+      numero: numeroNormalizado,
+      status: VagaStatus.LIVRE,
+    });
+
     return await this.repository.save(novaVaga);
   }
 
@@ -39,6 +52,7 @@ export class VagasService {
       query.andWhere('vaga.tipo = :tipo', { tipo });
     }
 
+    query.orderBy('vaga.numero', 'ASC');
     return await query.getMany();
   }
 
@@ -52,17 +66,24 @@ export class VagasService {
 
   async update(id: string, dto: Partial<CreateVagaDto>): Promise<VagaEntity> {
     const vaga = await this.findOne(id);
-    Object.assign(vaga, dto);
+
+    if (dto.numero) {
+      vaga.numero = dto.numero.toUpperCase();
+    }
+
+    if (dto.tipo) {
+      vaga.tipo = dto.tipo;
+    }
+
     return await this.repository.save(vaga);
   }
 
   async remove(id: string): Promise<void> {
     const vaga = await this.findOne(id);
 
-    // REGRA DE NEGÓCIO: Só pode excluir se estiver livre
     if (vaga.status !== VagaStatus.LIVRE) {
       throw new BadRequestException(
-        'Não é possível excluir uma vaga que não esteja livre.',
+        'Regra de Negócio: Não é possível excluir uma vaga que não esteja livre.',
       );
     }
 
@@ -78,13 +99,27 @@ export class VagasService {
       where: { status: VagaStatus.LIVRE },
     });
 
-    const percentualOcupacao = total > 0 ? (ocupadas / total) * 100 : 0;
+    const inicioDoDia = new Date();
+    inicioDoDia.setHours(0, 0, 0, 0);
+
+    const resultadoReceita = await this.repository.manager
+      .createQueryBuilder()
+      .select('SUM(valor_pago)', 'total')
+      .from('movimentacoes', 'm')
+      .where('m.saida >= :inicioDoDia', { inicioDoDia })
+      .getRawOne<ReceitaRaw>();
+
+    const receitaTotal = resultadoReceita?.total
+      ? parseFloat(resultadoReceita.total)
+      : 0;
 
     return {
       total,
       ocupadas,
       livres,
-      percentualOcupacao: Number(percentualOcupacao.toFixed(2)),
+      receitaDia: Number(receitaTotal.toFixed(2)),
+      percentualOcupacao:
+        total > 0 ? Number(((ocupadas / total) * 100).toFixed(2)) : 0,
     };
   }
 }
