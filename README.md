@@ -1,61 +1,48 @@
 # 🅿️ PARKIA – Plataforma de Estacionamentos Inteligentes
 
-O **PARKIA** é um sistema de gestão de estacionamentos desenvolvido como um desafio técnico. Ele permite o controle de ocupação de vagas em tempo real, gestão de movimentações (entrada e saída) com cálculo automático de tarifas e um dashboard para visualização de métricas.
+O **PARKIA** é um sistema completo de gestão de estacionamentos desenvolvido como um desafio técnico. Ele permite o controle de ocupação de vagas em tempo real, gestão de movimentações (entrada e saída) com cálculo automático de tarifas e um dashboard para visualização de métricas financeiras e operacionais.
 
 ---
 
 ## 🚀 Tecnologias Utilizadas
 
 ### Backend
-- **NestJS v11**: Framework escalável para Node.js.
+- **NestJS v11**: Framework escalável e modular para Node.js.
 - **TypeORM & PostgreSQL**: Modelagem de dados e persistência robusta.
-- **TypeScript**: Tipagem estrita para maior segurança de código.
+- **TypeScript**: Tipagem estrita para maior segurança e manutenibilidade.
 
 ### Frontend
-- **React 18**: Biblioteca para interfaces reativas.
-- **Tailwind CSS v4**: Novo motor de estilização de alta performance.
-- **Lucide React**: Conjunto de ícones modernos.
+- **React 18**: Biblioteca para interfaces reativas e componentes reutilizáveis.
+- **Tailwind CSS v4**: Novo motor de estilização nativo de alta performance.
+- **Lucide React**: Conjunto de ícones modernos e leves.
 
 ---
 
 ## 🛠️ Como Executar o Projeto
 
 ### 1. Pré-requisitos
-- **Docker** e **Docker Compose** instalados (recomendado).
-- Ou **Node.js (v20+)** e **PostgreSQL** instalados localmente.
+- **Docker** e **Docker Compose** instalados (método recomendado).
+- Ou **Node.js (v20+)** e **PostgreSQL** (porta 5444) instalados localmente.
 
-### 2. Rodando com Docker (Método mais rápido)
-Na raiz do repositório `parkia-challenge`, execute:
+### 2. Rodando com Docker (Diferencial)
+Na raiz do repositório, execute o comando abaixo para subir o Banco de Dados, a API e o Frontend simultaneamente:
 ```bash
 docker compose up -d
-Este comando sobe automaticamente o Banco de Dados, a API e o Frontend.
 
-3. Execução Manual (Sem Docker)
-Passo 1: Banco de Dados
-Certifique-se de ter um banco PostgreSQL rodando na porta 5444 (conforme configurado no projeto) com as seguintes credenciais:
-
-User: luis_admin
-
-Password: parkia_password
-
-DB: parkia_db
-
-Passo 2: Instalar Dependências
-Bash
-
+3. Execução Manual (Desenvolvimento)
+Passo 1: Instalar Dependências
 # Na raiz do projeto
 cd parkia-api && npm install
 cd ../parkia-web && npm install
-Passo 3: Executar a API
-Bash
 
+Passo 2: Executar a API
 cd parkia-api
-npm run start:dev
-Passo 4: Executar o Frontend
-Bash
+npm run start:dev   
 
+Passo 3: Executar o Frontend
 cd parkia-web
 npm run dev
+
 🌐 Acesso ao Sistema
 Interface Web: http://localhost:5173
 
@@ -66,9 +53,6 @@ Vagas
 Listar Vagas (com filtros): GET /vagas?status=livre&tipo=carro
 
 Criar Nova Vaga:
-
-Bash
-
 curl -X POST http://localhost:3000/vagas \
 -H "Content-Type: application/json" \
 -d '{"numero": "A-10", "tipo": "carro"}'
@@ -76,35 +60,31 @@ Estatísticas do Dashboard: GET /vagas/estatisticas
 
 Movimentações
 Registrar Entrada:
-
-Bash
-
 curl -X POST http://localhost:3000/movimentacoes/entrada \
 -H "Content-Type: application/json" \
 -d '{"vaga_id": "UUID_DA_VAGA", "placa": "ABC-1234", "tipo_veiculo": "carro"}'
-Registrar Saída (Retorna valor calculado):
 
-Bash
-
+Registrar Saída (Cálculo automático):
 curl -X POST http://localhost:3000/movimentacoes/saida \
 -H "Content-Type: application/json" \
 -d '{"placa": "ABC-1234"}'
+
 ⚖️ Regras de Negócio Implementadas
-Tolerância: Permanências de até 15 minutos não são cobradas.
+Tolerância: Permanências de até 15 minutos possuem custo zero.
 
-Cálculo de Tarifa: Cobrança da primeira hora cheia + horas adicionais fracionadas (arredondadas para cima).
+Cálculo de Tarifa: Cobrança baseada em valor fixo para a primeira hora + horas adicionais arredondadas para cima.
 
-Segurança de Vaga: Uma vaga em manutenção ou ocupada não aceita novas entradas.
+Segurança de Vaga: Bloqueio de entrada em vagas ocupadas ou em manutenção.
 
-Gestão de Vagas: Não é permitido excluir vagas que possuam veículos estacionados.
+Gestão de Vagas: Bloqueio de exclusão para vagas que não estejam livres.
 
-Compatibilidade: Motos podem usar vagas de carros, mas carros são impedidos de usar vagas de motos.
+Compatibilidade: Validação de tipos de veículos (Motos podem usar vagas de carros, mas o inverso é bloqueado).
 
 📂 Estrutura do Monorepo
-parkia-api/: Código fonte do Backend em NestJS.
+parkia-api/: Backend em NestJS.
 
-parkia-web/: Código fonte do Frontend em React + Tailwind v4.
+parkia-web/: Frontend em React + Tailwind v4.
 
-docker-compose.yml: Orquestração de containers.
+docker-compose.yml: Orquestração total do ambiente.
 
 Desenvolvido por: Luis Araujo (Janeiro/2026).
