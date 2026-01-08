@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import axios, { isAxiosError } from 'axios';
+import toast from 'react-hot-toast';
 import { LogIn, LogOut, Car, Bike, Search, ArrowLeftRight } from 'lucide-react';
 import { type Vaga, VagaTipo } from '../types/vaga';
 
@@ -41,7 +42,7 @@ export function Movimentacoes() {
       setVagasLivres(vagasRes.data);
       setAtivas(ativasRes.data);
     } catch (error: unknown) {
-      console.error("Erro ao sincronizar dados:", error);
+      toast.error(`Erro ao sincronizar dados com o servidor. Erro: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -54,135 +55,113 @@ export function Movimentacoes() {
   const handleEntrada = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3000/movimentacoes/entrada', entrada);
+      const payload = { ...entrada, placa: entrada.placa.toUpperCase().trim() };
+      await axios.post('http://localhost:3000/movimentacoes/entrada', payload);
+      
+      toast.success(`Entrada registrada: ${payload.placa}`);
       setEntrada({ vaga_id: '', placa: '', tipo_veiculo: 'carro' as VagaTipo });
-      await fetchDados();
-      alert("Entrada registrada com sucesso!");
+      fetchDados();
     } catch (error: unknown) {
       if (isAxiosError(error)) {
-        alert(error.response?.data?.message || "Falha ao registrar entrada");
+        toast.error(error.response?.data?.message || "Erro ao registrar entrada");
       }
     }
   };
 
   const handleSaida = async (e: FormEvent) => {
-  e.preventDefault();
-  try {
-    const placaFormatada = buscaPlaca.toUpperCase().trim();
-
-    const res = await axios.post('http://localhost:3000/movimentacoes/saida', { 
-      placa: placaFormatada 
-    });
-
-    setFeedbackSaida({ 
-      valor: Number(res.data.valor_pago), 
-      placa: res.data.placa 
-    });
-    
-    setBuscaPlaca('');
-    await fetchDados();
-  } catch (error: unknown) {
-    if (isAxiosError(error)) {
-      alert(error.response?.data?.message || "Veículo não encontrado ou erro na saída");
+    e.preventDefault();
+    try {
+      const placaSaida = buscaPlaca.toUpperCase().trim();
+      const res = await axios.post('http://localhost:3000/movimentacoes/saida', { placa: placaSaida });
+      
+      setFeedbackSaida({ valor: Number(res.data.valor_pago), placa: res.data.placa });
+      setBuscaPlaca('');
+      toast.success("Checkout realizado!");
+      fetchDados();
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Veículo não encontrado");
+      }
     }
-  }
-};
+  };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       <div className="flex items-center gap-3 mb-8">
         <div className="bg-blue-600 p-2 rounded-lg text-white">
           <ArrowLeftRight size={24} />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Central de Movimentações</h1>
-          <p className="text-slate-500">Controle de entradas e saídas do pátio em tempo real</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Central de Movimentações</h1>
+          <p className="text-slate-500">Gestão de fluxo e pátio em tempo real</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex items-center gap-2 mb-6 text-blue-600">
-              <LogIn size={20} />
-              <h2 className="font-bold text-lg text-slate-900 uppercase tracking-tight">Check-in</h2>
+            <div className="flex items-center gap-2 mb-6 text-blue-600 font-bold uppercase text-xs tracking-widest">
+              <LogIn size={18} /> Check-in
             </div>
-            
             <form onSubmit={handleEntrada} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Vaga Livre</label>
-                <select 
-                  className="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer bg-slate-50"
-                  value={entrada.vaga_id}
-                  onChange={e => setEntrada({...entrada, vaga_id: e.target.value})}
-                  required
-                >
-                  <option value="">-- Selecionar Vaga Disponível --</option>
-                  {vagasLivres.map(v => (
-                    <option key={v.id} value={v.id}>
-                      {v.numero} ({v.tipo.toUpperCase()})
-                    </option>
-                  ))}
-                </select>
-                {vagasLivres.length === 0 && !loading && (
-                  <p className="text-[10px] text-rose-500 mt-1 font-medium italic">* Não há vagas livres no momento</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Placa do Veículo</label>
-                <input 
-                  type="text" 
-                  placeholder="Ex: ABC-1234"
-                  className="w-full p-2.5 border border-slate-200 rounded-xl text-sm uppercase outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                  value={entrada.placa}
-                  onChange={e => setEntrada({...entrada, placa: e.target.value})}
-                  required
-                />
-              </div>
-
-              <div className="flex gap-4 p-1">
-                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-600">
+              <select 
+                className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                value={entrada.vaga_id}
+                onChange={e => setEntrada({...entrada, vaga_id: e.target.value})}
+                required
+              >
+                <option value="">-- Selecionar Vaga Disponível --</option>
+                {vagasLivres.map(v => (
+                  <option key={v.id} value={v.id}>{v.numero} ({v.tipo.toUpperCase()})</option>
+                ))}
+              </select>
+              <input 
+                type="text" 
+                placeholder="Placa (Ex: ABC1D23)"
+                className="w-full p-3 border border-slate-200 rounded-xl uppercase outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                value={entrada.placa}
+                onChange={e => setEntrada({...entrada, placa: e.target.value})}
+                required
+              />
+              <div className="flex gap-4 px-1">
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
                   <input type="radio" checked={entrada.tipo_veiculo === 'carro'} onChange={() => setEntrada({...entrada, tipo_veiculo: 'carro' as VagaTipo})} />
-                  <Car size={16} /> Carro
+                  Carro
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-600">
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
                   <input type="radio" checked={entrada.tipo_veiculo === 'moto'} onChange={() => setEntrada({...entrada, tipo_veiculo: 'moto' as VagaTipo})} />
-                  <Bike size={16} /> Moto
+                  Moto
                 </label>
               </div>
-
-              <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95 cursor-pointer">
-                Registrar Entrada
+              <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all cursor-pointer active:scale-95 shadow-lg shadow-blue-100">
+                Confirmar Entrada
               </button>
             </form>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex items-center gap-2 mb-6 text-rose-600">
-              <LogOut size={20} />
-              <h2 className="font-bold text-lg text-slate-900 uppercase tracking-tight">Check-out</h2>
+            <div className="flex items-center gap-2 mb-6 text-rose-600 font-bold uppercase text-xs tracking-widest">
+              <LogOut size={18} /> Check-out
             </div>
-            
             <form onSubmit={handleSaida} className="flex gap-2">
               <input 
                 type="text" 
                 placeholder="Placa para saída..."
-                className="flex-1 p-2.5 border border-slate-200 rounded-xl text-sm uppercase outline-none focus:ring-2 focus:ring-rose-500 transition-all"
+                className="flex-1 p-3 border border-slate-200 rounded-xl uppercase outline-none focus:ring-2 focus:ring-rose-500 transition-all"
                 value={buscaPlaca}
                 onChange={e => setBuscaPlaca(e.target.value)}
                 required
               />
-              <button type="submit" className="bg-rose-600 text-white p-3 rounded-xl hover:bg-rose-700 transition-colors shadow-md cursor-pointer">
+              <button type="submit" className="bg-rose-600 text-white p-3 rounded-xl hover:bg-rose-700 cursor-pointer shadow-md">
                 <Search size={20} />
               </button>
             </form>
 
             {feedbackSaida && (
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center animate-in zoom-in duration-300">
-                <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-1">Pagamento Pendente: {feedbackSaida.placa}</p>
-                <p className="text-4xl font-black text-amber-900">R$ {feedbackSaida.valor.toFixed(2)}</p>
-                <button onClick={() => setFeedbackSaida(null)} className="mt-3 text-xs font-bold text-amber-600 uppercase hover:underline cursor-pointer">Concluir e Fechar</button>
+              <div className="mt-6 p-6 bg-slate-900 text-white rounded-2xl text-center animate-in zoom-in duration-300">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Valor Calculado ({feedbackSaida.placa})</p>
+                <p className="text-4xl font-black text-blue-400">R$ {feedbackSaida.valor.toFixed(2)}</p>
+                <button onClick={() => setFeedbackSaida(null)} className="mt-4 text-xs font-bold text-slate-400 hover:text-white uppercase cursor-pointer">Fechar</button>
               </div>
             )}
           </div>
@@ -190,27 +169,27 @@ export function Movimentacoes() {
 
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-              <h2 className="font-bold text-slate-900 uppercase tracking-tight text-sm">Veículos no Pátio</h2>
-              <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black">{ativas.length} VEÍCULOS</span>
+            <div className="p-6 bg-slate-50/50 flex justify-between items-center border-b border-slate-100">
+              <h2 className="font-bold text-slate-800 text-sm uppercase tracking-tight">Veículos no Pátio</h2>
+              <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black">{ativas.length} NO MOMENTO</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="text-[10px] uppercase text-slate-400 bg-slate-50/30">
                   <tr>
-                    <th className="px-6 py-4 font-bold">Vaga</th>
-                    <th className="px-6 py-4 font-bold">Placa</th>
-                    <th className="px-6 py-4 font-bold">Entrada</th>
-                    <th className="px-6 py-4 font-bold text-center">Tipo</th>
+                    <th className="px-6 py-4">Vaga</th>
+                    <th className="px-6 py-4">Placa</th>
+                    <th className="px-6 py-4">Entrada</th>
+                    <th className="px-6 py-4 text-center">Tipo</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {ativas.map(at => (
-                    <tr key={at.id} className="text-sm hover:bg-slate-50 transition-colors">
+                    <tr key={at.id} className="text-sm hover:bg-slate-50 transition-colors group">
                       <td className="px-6 py-4 font-black text-blue-600">{at.vaga?.numero}</td>
                       <td className="px-6 py-4 font-medium tracking-widest">{at.placa}</td>
-                      <td className="px-6 py-4 text-slate-400 text-xs">{new Date(at.entrada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                      <td className="px-6 py-4 flex justify-center text-slate-300">
+                      <td className="px-6 py-4 text-slate-400">{new Date(at.entrada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td className="px-6 py-4 flex justify-center text-slate-400 group-hover:text-blue-500 transition-colors">
                         {at.tipo_veiculo === 'carro' ? <Car size={18} /> : <Bike size={18} />}
                       </td>
                     </tr>
@@ -218,7 +197,7 @@ export function Movimentacoes() {
                 </tbody>
               </table>
               {ativas.length === 0 && !loading && (
-                <div className="py-20 text-center text-slate-300 italic text-sm">Nenhum veículo estacionado no momento.</div>
+                <div className="py-20 text-center text-slate-300 italic text-sm">Pátio vazio.</div>
               )}
             </div>
           </div>
