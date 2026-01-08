@@ -66,18 +66,27 @@ export function Movimentacoes() {
   };
 
   const handleSaida = async (e: FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('http://localhost:3000/movimentacoes/saida', { placa: buscaPlaca });
-      setFeedbackSaida({ valor: Number(res.data.valor_pago), placa: res.data.placa });
-      setBuscaPlaca('');
-      await fetchDados();
-    } catch (error: unknown) {
-      if (isAxiosError(error)) {
-        alert(error.response?.data?.message || "Veículo não encontrado ou erro na saída");
-      }
+  e.preventDefault();
+  try {
+    const placaFormatada = buscaPlaca.toUpperCase().trim();
+
+    const res = await axios.post('http://localhost:3000/movimentacoes/saida', { 
+      placa: placaFormatada 
+    });
+
+    setFeedbackSaida({ 
+      valor: Number(res.data.valor_pago), 
+      placa: res.data.placa 
+    });
+    
+    setBuscaPlaca('');
+    await fetchDados();
+  } catch (error: unknown) {
+    if (isAxiosError(error)) {
+      alert(error.response?.data?.message || "Veículo não encontrado ou erro na saída");
     }
-  };
+  }
+};
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
